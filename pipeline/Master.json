@@ -1,0 +1,132 @@
+{
+	"name": "Master",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "config.get_etlobject",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDB",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "config",
+							"table": "etlobject"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach API",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "extraction_and_acquisition",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "extraction_and_acquisition",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"baseurl": {
+										"value": "@item().baseURL",
+										"type": "Expression"
+									},
+									"container": "incoming",
+									"directory": {
+										"value": "@item().objectschema",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Ingestion_and_transformation",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "extraction_and_acquisition",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Ingestion_and_transformation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"targetcontainer": "archive",
+									"directory": {
+										"value": "@item().objectschema",
+										"type": "Expression"
+									},
+									"sourcecontainer": "incoming",
+									"schema": {
+										"value": "@item().objectschema",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@item().objectName",
+										"type": "Expression"
+									},
+									"ColMapping": {
+										"value": "@item().columnMapping",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-02-18T11:07:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

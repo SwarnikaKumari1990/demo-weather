@@ -1,0 +1,89 @@
+{
+	"name": "extraction_and_acquisition",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data from API",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Content-Type": "application/json"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "restapi",
+						"type": "DatasetReference",
+						"parameters": {
+							"baseurl": {
+								"value": "@pipeline().parameters.baseurl",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Json",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							},
+							"directory": {
+								"value": "@pipeline().parameters.directory",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"baseurl": {
+				"type": "string",
+				"defaultValue": "https://api.weather.gov/zones"
+			},
+			"container": {
+				"type": "string",
+				"defaultValue": "incoming"
+			},
+			"directory": {
+				"type": "string",
+				"defaultValue": "zones"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-02-16T03:05:07Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,9 @@
+{
+	"name": "demo-adf-group1",
+	"location": "australiasoutheast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "88784fa2-77d8-4abf-99e7-d21e69b06edf",
+		"tenantId": "8f4e84e7-9935-4ce0-8f43-a601e686de25"
+	}
+}
